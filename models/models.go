@@ -5,6 +5,7 @@ import (
 	"github.com/gofrs/uuid"
 	"golang.org/x/net/idna"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -24,12 +25,19 @@ func (h *Host) IncrementTimes() {
 	h.Times++
 }
 
-func NewHost(host string) *Host {
+func NewHost(host string) (*Host, error) {
 	h, err := idna.ToASCII(host)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return &Host{Host: h}
+	if strings.HasSuffix(h, ".") {
+		h = h[:len(h)-1]
+	}
+
+	if parts := strings.Split(h, "."); len(parts) < 2 {
+		return nil, fmt.Errorf("host must have at least 2 parts")
+	}
+	return &Host{Host: h}, nil
 }
 
 type IP struct {
@@ -46,7 +54,7 @@ func NewIP(ip string) *IP {
 	if parsedIP := net.ParseIP(ip); parsedIP != nil {
 		return &IP{IP: ip}
 	}
-	panic(fmt.Sprintf("Invalid IP address: '%s'", ip))
+	return nil
 }
 
 type URL struct {

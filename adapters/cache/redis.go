@@ -5,10 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dimixlol/knowyourwebsite/config"
-	"github.com/dimixlol/knowyourwebsite/domains/persister/adapters/database"
-	"github.com/dimixlol/knowyourwebsite/domains/persister/models"
-	persisterPorts "github.com/dimixlol/knowyourwebsite/domains/persister/ports"
-	"github.com/dimixlol/knowyourwebsite/domains/requester/ports"
+	"github.com/dimixlol/knowyourwebsite/logging"
+	"github.com/dimixlol/knowyourwebsite/models"
+	"github.com/dimixlol/knowyourwebsite/ports"
 	"github.com/go-redis/cache/v8"
 	"github.com/go-redis/redis/v8"
 )
@@ -16,10 +15,11 @@ import (
 type redisCacheManager struct {
 	ctx       context.Context
 	cache     *cache.Cache
-	persister persisterPorts.Persister
+	persister ports.Persister
+	logger    *logging.Logger
 }
 
-func (r *redisCacheManager) GetUrlBySlug(slug string) persisterPorts.URL {
+func (r *redisCacheManager) GetUrlBySlug(slug string) ports.URL {
 	var cached *models.URL
 	var err error
 
@@ -43,9 +43,9 @@ func (r *redisCacheManager) GetUrlBySlug(slug string) persisterPorts.URL {
 	return cached
 }
 
-func newRedisCacheManager(ctx context.Context) ports.CacheManager {
+func newRedisCacheManager(ctx context.Context, persister ports.Persister) ports.CacheManager {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", config.Configuration.Cache.Host, config.Configuration.Cache.Port),
+		Addr:     fmt.Sprintf("%s:%s", config.Configuration.Cache.Host, config.Configuration.Cache.Port),
 		Password: config.Configuration.Cache.Password,
 		DB:       config.Configuration.Cache.DB,
 	})
@@ -58,10 +58,11 @@ func newRedisCacheManager(ctx context.Context) ports.CacheManager {
 	return &redisCacheManager{
 		ctx,
 		rc,
-		database.NewDatabasePersister(ctx),
+		persister,
+		logging.GetLogger(ctx),
 	}
 }
 
-func NewCacheManager(ctx context.Context) ports.CacheManager {
-	return newRedisCacheManager(ctx)
+func NewCacheManager(ctx context.Context, persister ports.Persister) ports.CacheManager {
+	return newRedisCacheManager(ctx, persister)
 }

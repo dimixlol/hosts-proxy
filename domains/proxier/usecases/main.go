@@ -1,10 +1,10 @@
-package http
+package usecases
 
 import (
 	"bytes"
 	"crypto/tls"
-	"github.com/dimixlol/knowyourwebsite/domains/requester/ports"
 	"github.com/dimixlol/knowyourwebsite/pkg/compress"
+	"github.com/dimixlol/knowyourwebsite/ports"
 	"github.com/dimixlol/knowyourwebsite/utils"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -21,7 +21,7 @@ func init() {
 	compressor = compress.NewCompressor()
 }
 
-func NewHandler(cache ports.CacheManager) gin.HandlerFunc {
+func NewRequestProxier(cache ports.CacheManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		host := c.Request.Host
 		slug := utils.GetSlugFromHost(host)

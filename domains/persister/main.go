@@ -2,13 +2,20 @@ package persister
 
 import (
 	"context"
-	"github.com/dimixlol/knowyourwebsite/domains/persister/adapters/database"
-	"github.com/dimixlol/knowyourwebsite/domains/persister/handlers/http"
-	"github.com/wI2L/fizz"
+	"fmt"
+	"github.com/dimixlol/knowyourwebsite/adapters/database"
+	"github.com/dimixlol/knowyourwebsite/config"
+	"github.com/dimixlol/knowyourwebsite/domains/persister/entrypoints"
+	"github.com/dimixlol/knowyourwebsite/utils"
+	"net/http"
 )
 
-func NewPersister(ctx context.Context, fz *fizz.Fizz) {
-	api := fz.Group("/persister", "persister", "Persister API")
+func NewHTTPPersister(ctx context.Context) *http.Server {
+	engine := utils.NewEngine()
 	db := database.NewDatabasePersister(ctx)
-	api.POST("create/", http.NewPersistentSiteSpec, http.NewPersistentSite(db))
+	entrypoints.NewHTTPEntrypoint(ctx, db, engine)
+	return &http.Server{
+		Addr:    fmt.Sprintf("%s:%s", config.Configuration.Host, config.Configuration.Port),
+		Handler: engine,
+	}
 }

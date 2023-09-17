@@ -6,39 +6,22 @@ import (
 	"time"
 )
 
-type dbConfiguration struct {
-	Host     string
-	Port     string
-	User     string
-	Password string
-	Name     string
-	SSLMode  string
-	Timezone string
-	Driver   string
-}
-
-type cacheConfiguration struct {
-	Host     string
-	Port     string
-	Password string
-	DB       int
-	Size     int
-	TTL      time.Duration
-}
-
 type configuration struct {
 	Host       string
 	Port       string
 	SlugLength uint
 	DB         *dbConfiguration
 	Cache      *cacheConfiguration
+	Version    string
+	API        *apiConfiguration
 	Viper      *viper.Viper
+	Logging    *loggingConfiguration
 }
 
 var Configuration *configuration
 
-func CreateConfiguration(configFile string) {
-	cfg := newConfiguration()
+func CreateConfiguration(configFile, version string) {
+	cfg := newConfiguration(version)
 	cfg.SetConfigFile(configFile)
 	err := cfg.ReadInConfig()
 	if err != nil {
@@ -52,7 +35,7 @@ func CreateConfiguration(configFile string) {
 	}
 }
 
-func newConfiguration() *viper.Viper {
+func newConfiguration(version string) *viper.Viper {
 	cfg := viper.New()
 	cfg.SetDefault("host", "")
 	cfg.SetDefault("port", "8080")
@@ -71,6 +54,20 @@ func newConfiguration() *viper.Viper {
 	cfg.SetDefault("cache.db", 0)
 	cfg.SetDefault("cache.size", 10000)
 	cfg.SetDefault("cache.ttl", 24*time.Hour)
-
+	cfg.SetDefault("logging.level", "info")
+	cfg.SetDefault("api.title", "Knowyourwebsite API")
+	cfg.SetDefault("api.description", "Manage mapping between domains and IPs")
+	cfg.SetDefault("api.contact.name", "dimixlol")
+	cfg.SetDefault("api.contact.email", "dmitriy.t@dmxlol.io")
+	cfg.SetDefault("api.contact.url", "https://dmxlol.io")
+	cfg.SetDefault("api.license.name", "GPLv3")
+	cfg.SetDefault("api.license.url", "https://github.com/dimixlol/knowyourwebsite/raw/master/LICENSE")
+	cfg.SetDefault("api.logo.url", "https://redocly.github.io/redoc/petstore-logo.png")
+	cfg.SetDefault("api.logo.color", "#fff")
+	cfg.SetDefault("api.logo.altText", "Dimix Logo")
+	cfg.SetDefault("api.logo.href", "https://dmxlol.io")
+	// constant
+	cfg.Set("version", version)
+	cfg.Set("api.version", "v1")
 	return cfg
 }

@@ -2,12 +2,12 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/dimixlol/knowyourwebsite/config"
-	"github.com/dimixlol/knowyourwebsite/domains/persister/models"
-	"github.com/dimixlol/knowyourwebsite/domains/persister/ports"
 	"github.com/dimixlol/knowyourwebsite/logging"
-	"github.com/dimixlol/knowyourwebsite/utils"
+	"github.com/dimixlol/knowyourwebsite/models"
+	"github.com/dimixlol/knowyourwebsite/ports"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -18,7 +18,7 @@ type gormPersister struct {
 	DB  *gorm.DB
 }
 
-func (g *gormPersister) getOrCreateWithTrack(instance ports.TrackedModel, model interface{}) error {
+func (g *gormPersister) GetOrCreateWithTrack(instance ports.TrackedModel, model interface{}) error {
 	err := g.DB.FirstOrCreate(instance, model).Error
 	if err != nil {
 		return err
@@ -28,33 +28,21 @@ func (g *gormPersister) getOrCreateWithTrack(instance ports.TrackedModel, model 
 	return nil
 }
 
-func (g *gormPersister) NewPersistentSite(host *models.Host, ip *models.IP) ports.URL {
-	var err error
-	err = g.getOrCreateWithTrack(host, &models.Host{Host: host.Host})
-	if err != nil {
-		panic(err)
-	}
-	err = g.getOrCreateWithTrack(ip, &models.IP{IP: ip.IP})
-	if err != nil {
-		panic(err)
-	}
-
-	urlModel := &models.URL{Host: host, IP: ip, Slug: utils.RandomStringWithLength(config.Configuration.SlugLength)}
-	err = g.DB.Create(urlModel).Error
-	if err != nil {
-		panic(err)
-	}
-	return urlModel
+func (g *gormPersister) CreateURL(url *models.URL) error {
+	return g.DB.Create(url).Error
 }
 
 func (g *gormPersister) GetURLBySlug(slug string) (ports.URL, error) {
 	url := &models.URL{}
-	res := g.DB.Preload(clause.Associations).Find(url, "slug = ?", slug)
-	fmt.Println("ERROR is", res.Error)
-	fmt.Println("URL is", url)
+	res := g.DB.Preload(clause.Associations).First(url, "slug = ?", slug)
+
+	if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
 	if res.Error != nil {
 		return nil, res.Error
 	}
+
 	return url, nil
 }
 

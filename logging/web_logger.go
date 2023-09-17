@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"github.com/dimixlol/knowyourwebsite/config"
 	"github.com/gin-gonic/gin"
 	"strings"
 	"time"
@@ -25,8 +26,8 @@ func JSONLogMiddleware() gin.HandlerFunc {
 			"status", c.Writer.Status(),
 			"referrer", c.Request.Referer(),
 			"request_id", c.Writer.Header().Get("Request-Id"),
+			"api_version", config.Configuration.API.Version,
 		)
-		// "api_version": util.ApiVersion,
 	}
 }
 

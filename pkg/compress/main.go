@@ -14,12 +14,14 @@ const (
 	Deflate = "deflate"
 )
 
-type Compressor interface {
-	Compress(encoding string, body string) []byte
-	Decompress(encoding string, body io.ReadCloser) string
-}
+type (
+	Compressor interface {
+		Compress(encoding string, body string) []byte
+		Decompress(encoding string, body io.ReadCloser) string
+	}
 
-type compressor struct{}
+	compressor struct{}
+)
 
 func compress(data []byte, encoder io.WriteCloser) {
 	if _, err := encoder.Write(data); err != nil {

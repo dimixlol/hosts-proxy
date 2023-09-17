@@ -2,93 +2,56 @@ package main
 
 import (
 	"context"
-	"embed"
-	"fmt"
 	"github.com/dimixlol/knowyourwebsite/config"
 	"github.com/dimixlol/knowyourwebsite/domains/persister"
-	"github.com/dimixlol/knowyourwebsite/domains/requester"
-	"github.com/dimixlol/knowyourwebsite/logging"
-	"github.com/gin-contrib/cors"
+	"github.com/dimixlol/knowyourwebsite/domains/proxier"
+	"github.com/dimixlol/knowyourwebsite/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/wI2L/fizz"
-	"github.com/wI2L/fizz/openapi"
-	"io/fs"
+	"github.com/loopfz/gadgeto/tonic"
+	"github.com/spf13/cobra"
 	"net/http"
-	"time"
+	"os"
 )
 
-// github.com/elazarl/goproxy
-//var customTransport = http.DefaultTransport
-//
-//var urls = map[string]string{
-//	"foo": "199.188.205.68",
-//	"bar": "199.188.205.65",
-//}
-
-//
-
-//go:embed swagger-ui
-var swaggerUIDir embed.FS
-
-func registerRoutes(f *fizz.Fizz) {
-	info := &openapi.Info{
-		Title:       "Knowyourwebsite API",
-		Description: "Manage mapping between domains and IPs",
-		Version:     "0.0.1",
+var (
+	Version      = "0.0.1"
+	rootCmd      = &cobra.Command{}
+	persisterCmd = &cobra.Command{
+		Use: "persister",
 	}
-	f.GET("/api/v1/swagger.json", nil, f.OpenAPI(info, "json"))
-	f.GET("/api/v1/swagger.yaml", nil, f.OpenAPI(info, "yaml"))
+	requesterCmd = &cobra.Command{
+		Use: "proxier",
+	}
+)
+
+func newListenerCmd(ctx context.Context, server *http.Server) *cobra.Command {
+	return &cobra.Command{
+		Use:   "listen",
+		Short: "listen",
+		Long:  "listen long",
+		Run: func(cmd *cobra.Command, args []string) {
+			err := server.ListenAndServe()
+			if err != nil {
+				panic(err)
+			}
+		}}
 }
 
 func main() {
-	config.CreateConfiguration("config.json")
+	config.CreateConfiguration("config.json", Version)
 	gin.SetMode(gin.ReleaseMode)
-	engine := gin.New()
-	engine.Use(logging.JSONLogMiddleware())
-	engine.Use(gin.Recovery())
-	//engine.Use(gin.CustomRecovery(response.Recovery))
-	engine.Use(cors.Default())
+	tonic.SetErrorHook(utils.ErrHook)
+	tonic.SetRenderHook(utils.RenderHook, "application/json")
+	tonic.SetBindHook(utils.BindingHook)
+	rootCtx := context.Background()
 
-	//engine.Use(...) // register global middlewares
-	f := fizz.NewFromEngine(engine)
-	f.Use(logging.JSONLogMiddleware())
-	swaggerAssets, fsErr := fs.Sub(swaggerUIDir, "swagger-ui")
-	if fsErr != nil {
-		panic(fsErr)
+	persisterCmd.AddCommand(newListenerCmd(rootCtx, persister.NewHTTPPersister(rootCtx)))
+	requesterCmd.AddCommand(newListenerCmd(rootCtx, proxier.NewHTTPRequester(rootCtx)))
+	rootCmd.AddCommand(persisterCmd)
+	rootCmd.AddCommand(requesterCmd)
+
+	err := rootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
 	}
-	engine.StaticFS("/api/swagger", http.FS(swaggerAssets))
-	engine.GET("/", func(c *gin.Context) { c.Redirect(http.StatusMovedPermanently, "/api/swagger") })
-
-	ctx := context.Background()
-	const APIVersion = "v1"
-	persister.NewPersister(ctx, f)
-	registerRoutes(f)
-	srv := &http.Server{
-		Addr:    fmt.Sprintf("%s:%s", config.Configuration.Host, config.Configuration.Port),
-		Handler: f,
-	}
-
-	go func() {
-		err := srv.ListenAndServe()
-		if err != nil {
-			fmt.Println("exited with error:", err)
-		}
-	}()
-
-	proxy := gin.New()
-	proxy.Use(logging.JSONLogMiddleware())
-	proxy.Use(gin.Recovery())
-	req := requester.NewRequester(ctx)
-	proxy.Any("/*any", req)
-	srv2 := &http.Server{
-		Addr:    fmt.Sprintf("%s:%s", config.Configuration.Host, "8081"),
-		Handler: proxy,
-	}
-	go func() {
-		err := srv2.ListenAndServe()
-		if err != nil {
-			fmt.Println("exited with error:", err)
-		}
-	}()
-	time.Sleep(100 * time.Minute)
 }
