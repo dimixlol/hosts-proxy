@@ -19,17 +19,26 @@ type redisCacheManager struct {
 	logger    *logging.Logger
 }
 
-func (r *redisCacheManager) GetUrlBySlug(slug string) ports.URL {
+func (r *redisCacheManager) GetUrlBySlug(slug string) (ports.URL, error) {
 	var cached *models.URL
 	var err error
 
 	err = r.cache.Get(r.ctx, slug, &cached)
 	if err != nil && !errors.Is(err, cache.ErrCacheMiss) {
-		panic(err)
+		r.logger.Errorf(r.ctx, "error while getting url from cache: %s", err.Error())
+		return nil, err
 	}
 
 	if cached == nil {
 		cached, err := r.persister.GetURLBySlug(slug)
+		if err != nil {
+			r.logger.Errorf(r.ctx, "error while getting url from persister to cache: %s", err.Error())
+			return nil, err
+		}
+		if cached == nil {
+			r.logger.Errorf(r.ctx, "url not found in persister")
+			return nil, nil
+		}
 		err = r.cache.Set(&cache.Item{
 			Ctx:   r.ctx,
 			Key:   slug,
@@ -37,10 +46,10 @@ func (r *redisCacheManager) GetUrlBySlug(slug string) ports.URL {
 			TTL:   config.Configuration.Cache.TTL,
 		})
 		if err != nil {
-			panic(err)
+			r.logger.Errorf(r.ctx, "error while setting url to cache: %s", err.Error())
 		}
 	}
-	return cached
+	return cached, nil
 }
 
 func newRedisCacheManager(ctx context.Context, persister ports.Persister) ports.CacheManager {

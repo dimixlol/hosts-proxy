@@ -3,9 +3,15 @@ package config
 import (
 	"github.com/spf13/viper"
 	"io/fs"
+	"strings"
 	"time"
 )
 
+type proxierConfiguration struct {
+	Host string
+	Port string
+	TLS  bool
+}
 type configuration struct {
 	Host       string
 	Port       string
@@ -16,12 +22,15 @@ type configuration struct {
 	API        *apiConfiguration
 	Viper      *viper.Viper
 	Logging    *loggingConfiguration
+	Proxier    *proxierConfiguration
 }
 
 var Configuration *configuration
 
 func CreateConfiguration(configFile, version string) {
 	cfg := newConfiguration(version)
+	cfg.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	cfg.AutomaticEnv()
 	cfg.SetConfigFile(configFile)
 	err := cfg.ReadInConfig()
 	if err != nil {
@@ -66,6 +75,9 @@ func newConfiguration(version string) *viper.Viper {
 	cfg.SetDefault("api.logo.color", "#fff")
 	cfg.SetDefault("api.logo.altText", "Dimix Logo")
 	cfg.SetDefault("api.logo.href", "https://dmxlol.io")
+	cfg.SetDefault("proxier.host", "localhost")
+	cfg.SetDefault("proxier.port", "8081")
+	cfg.SetDefault("proxier.tls", false)
 	// constant
 	cfg.Set("version", version)
 	cfg.Set("api.version", "v1")

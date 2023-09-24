@@ -3,6 +3,8 @@ package usecases
 import (
 	"bytes"
 	"crypto/tls"
+	proxierPorts "github.com/dimixlol/knowyourwebsite/domains/proxier/ports"
+	"github.com/dimixlol/knowyourwebsite/logging"
 	"github.com/dimixlol/knowyourwebsite/pkg/compress"
 	"github.com/dimixlol/knowyourwebsite/ports"
 	"github.com/dimixlol/knowyourwebsite/utils"
@@ -15,29 +17,46 @@ import (
 	"strings"
 )
 
-var compressor compress.Compressor
+var (
+	compressor compress.Compressor
+	modifiers  = []proxierPorts.Modifier{embedUrlReplacer(), hostReplacer(), redirectReplacer()}
+)
 
 func init() {
 	compressor = compress.NewCompressor()
+}
+
+func handleError(c *gin.Context, err error) {
+	c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+		"message": err,
+	})
 }
 
 func NewRequestProxier(cache ports.CacheManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		host := c.Request.Host
 		slug := utils.GetSlugFromHost(host)
-		getUrlFromCache := cache.GetUrlBySlug(slug)
+		urlFromCache, err := cache.GetUrlBySlug(slug)
 
-		remote, err := url.Parse("https://" + getUrlFromCache.GetIP())
 		if err != nil {
-			panic(err)
+			handleError(c, err)
+			return
 		}
+
+		remote, err := url.Parse(httpSchema + urlFromCache.GetIP())
+
+		if err != nil {
+			handleError(c, err)
+			return
+		}
+
 		proxy := httputil.NewSingleHostReverseProxy(remote)
-		proxy.ModifyResponse = modifier(c, getUrlFromCache.GetHost())
+		proxy.ModifyResponse = modifyResponse(c, modifiers, urlFromCache)
 		proxy.Director = func(req *http.Request) {
 			req.Header = c.Request.Header
-			req.Host = getUrlFromCache.GetHost()
-			req.URL.Scheme = "https"
-			req.URL.Host = getUrlFromCache.GetIP()
+			req.Host = urlFromCache.GetHost()
+			req.URL.Scheme = strings.ReplaceAll(httpSchema, "://", "")
+			req.URL.Host = urlFromCache.GetIP()
 			req.URL.Path = c.Request.URL.Path
 		}
 		proxy.Transport = &http.Transport{
@@ -49,19 +68,27 @@ func NewRequestProxier(cache ports.CacheManager) gin.HandlerFunc {
 	}
 }
 
-func modifier(c *gin.Context, oldHost string) func(*http.Response) error {
+func modifyResponse(c *gin.Context, modifiers []proxierPorts.Modifier, url ports.URL) func(*http.Response) error {
 	return func(res *http.Response) error {
+		logger := logging.GetLogger(c)
 		encoding := res.Header.Get("Content-Encoding")
 		body := compressor.Decompress(encoding, res.Body)
-		body = strings.ReplaceAll(body, oldHost, c.Request.Host)
+
+		for i, modifier := range modifiers {
+			var err error
+			body, err = modifier(c, url, body, res)
+			if err != nil {
+				logger.Errorf(c, "modifier %d failed while modifying response: %s", i, err)
+				return err
+			}
+		}
 
 		bodyBytes := compressor.Compress(encoding, body)
 		bodyContentLength := len(bodyBytes)
-
-		writer := io.NopCloser(bytes.NewBuffer(bodyBytes))
-		res.Body = writer
+		res.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		res.ContentLength = int64(bodyContentLength)
 		res.Header.Set("Content-Length", strconv.Itoa(bodyContentLength))
+
 		return nil
 	}
 }

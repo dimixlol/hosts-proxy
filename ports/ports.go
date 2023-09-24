@@ -4,7 +4,7 @@ import "github.com/dimixlol/knowyourwebsite/models"
 
 type (
 	CacheManager interface {
-		GetUrlBySlug(slug string) URL
+		GetUrlBySlug(slug string) (URL, error)
 	}
 
 	Requester interface {

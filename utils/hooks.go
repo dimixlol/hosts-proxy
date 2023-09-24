@@ -10,36 +10,51 @@ import (
 	"strings"
 )
 
-type Response struct {
-	Status int         `json:"status"`
-	Data   interface{} `json:"data,omitempty"`
-	Err    interface{} `json:"error,omitempty"`
+type SuccessfulResponse struct {
+	Status int         `json:"status" example:"200"`
+	Data   interface{} `json:"data"`
 }
 
-func (dr *Response) GetData() interface{} {
-	return dr.Data
-}
-func (dr *Response) Error() string {
-	return dr.Err.(string)
-}
-func (dr *Response) GetStatus() int {
-	return dr.Status
+type UnsuccessfulResponse struct {
+	Status int         `json:"status" example:"500"`
+	Err    interface{} `json:"error"`
 }
 
-func NewResponse(status int, data interface{}, err interface{}) *Response {
-	return &Response{
+//func (dr *SuccessfulResponse) GetData() interface{} {
+//	return dr.Data
+//}
+//func (dr *UnsuccessfulResponse) Error() string {
+//	return dr.Err.(string)
+//}
+//func (dr *Response) GetStatus() int {
+//	return dr.Status
+//}
+
+func NewSuccessfulResponse(status int, data interface{}) *SuccessfulResponse {
+	return &SuccessfulResponse{
 		Status: status,
 		Data:   data,
-		Err:    err,
 	}
 }
-func NewResponseWithCode(status int, data interface{}, err interface{}) (int, *Response) {
-	return status, NewResponse(status, data, err)
+
+func NewUnsuccessfulResponse(status int, data interface{}) *UnsuccessfulResponse {
+	return &UnsuccessfulResponse{
+		Status: status,
+		Err:    data,
+	}
+}
+
+func NewSuccessfulResponseWithCode(status int, data interface{}) (int, *SuccessfulResponse) {
+	return status, NewSuccessfulResponse(status, data)
+}
+
+func NewUnsuccessfulResponseWithCode(status int, err interface{}) (int, *UnsuccessfulResponse) {
+	return status, NewUnsuccessfulResponse(status, err)
 }
 
 func Recovery(c *gin.Context, err any) {
 	logger := logging.GetLogger(c)
-	c.AbortWithStatusJSON(NewResponseWithCode(http.StatusInternalServerError, nil, "internal server error"))
+	c.AbortWithStatusJSON(NewUnsuccessfulResponseWithCode(http.StatusInternalServerError, "internal server error"))
 	logger.Errorf(c, "internal server error: %s", err)
 }
 
@@ -60,9 +75,9 @@ func RenderHook(c *gin.Context, statusCode int, data interface{}) {
 	}
 
 	if status >= http.StatusBadRequest {
-		fn(NewResponseWithCode(status, nil, data))
+		fn(NewUnsuccessfulResponseWithCode(status, data))
 	} else {
-		fn(NewResponseWithCode(status, data, nil))
+		fn(NewSuccessfulResponseWithCode(status, data))
 	}
 }
 

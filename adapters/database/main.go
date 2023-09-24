@@ -29,7 +29,13 @@ func (g *gormPersister) GetOrCreateWithTrack(instance ports.TrackedModel, model 
 }
 
 func (g *gormPersister) CreateURL(url *models.URL) error {
-	return g.DB.Create(url).Error
+	res := g.DB.First(&url, "host_id = ? AND ip_id = ?", url.Host.ID, url.IP.ID)
+
+	if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+		return g.DB.Create(url).Error
+	}
+
+	return res.Error
 }
 
 func (g *gormPersister) GetURLBySlug(slug string) (ports.URL, error) {
