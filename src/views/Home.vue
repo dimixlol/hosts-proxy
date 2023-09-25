@@ -43,7 +43,7 @@ const createSite = (e:any) => {
   toggleEgg();
   store.client.createSite(e.target.host.value, e.target.ip.value)
     .then((resp: any) => {
-      store.setSlugData(resp.data)
+      store.setSlugData(resp.data.data)
       router.push({name: "siteView"})
     })
     .catch((err: any) => {
