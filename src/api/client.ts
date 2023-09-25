@@ -8,9 +8,17 @@ export interface APIClientConfig {
 }
 
 export interface APIResponse {
-    slug: string;
-    host: string;
-    ip: string;
+    status: number
+    data: {
+        slug: string;
+        host: string;
+        ip: string;
+    }
+}
+
+export interface APIError {
+    status: number;
+    error: string;
 }
 
 export class APIClient {
@@ -23,19 +31,27 @@ export class APIClient {
             // headers: config.HEADERS,
         })
     }
-    createSite(host: string, ip: string){
+    createSite(host: string, ip: string): Promise<APIResponse|APIError> {
         const start = Date.now();
         // const csrf = this.getCSRFToken();
-        return this.client.post("/persister/create/", {host, ip},) // {headers: {"X-CSRF-Token": csrf}}
+
+        if (import.meta.env.MODE === "development") {
+            return new Promise((resolve) => {
+                setTimeout(() => {resolve({data: {slug: "test", host: "domain.tld", ip: "1.1.1.1"}, status: 200})}, 100);
+            })
+        }
+
+        return this.client.post("/persister/create/", {host, ip})// {headers: {"X-CSRF-Token": csrf}}
             .then((resp: AxiosResponse) => {
               console.log({response: resp.data, latency: Date.now() - start, status: resp.status})
-              return resp
+              return resp.data
             })
             .catch((err) => {
                 console.log({err: err.message, latency: Date.now() - start})
                 throw err;
             })
     }
+
     createCSRFToken() {
         this.client.get("/csrf")
             .then((res: AxiosResponse) => {
