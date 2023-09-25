@@ -1,5 +1,4 @@
 <template>
-  <div>
     <div class="z-1 align-self-center w-50 d-flex flex-column justify-content-center flex-grow-1 align-items-center">
       <div class="p-1 user-select-none text-center">
         Link for
@@ -13,22 +12,17 @@
       </div>
     </div>
   <egg v-model:eggVisible="store.showEgg"/>
-  </div>
 </template>
 
 <script lang="ts" setup>
 import {onMounted, ref} from "vue";
 import {useMainStore} from "../store";
 import Egg from "../components/Egg.vue";
-import {useRouter} from "vue-router";
-
 const store = useMainStore()
 const siteName = ref(store.slugData.slug + import.meta.env.VITE_PROXY_BASE);
 const siteNameWithSchema = ref(import.meta.env.VITE_PROXY_SCHEMA + siteName);
-const router = useRouter();
 // @ts-ignore
 onMounted(() => {
-  if (!store.slugData.slug) { router.replace({name: 'homeView'}); }
   store.toggleEgg();
 })
 </script>
