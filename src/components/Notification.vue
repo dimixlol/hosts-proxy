@@ -15,11 +15,11 @@
 
 <script setup lang="ts">
 
-import {useStore} from "vuex";
+import {useMainStore} from "../store";
 import {computed} from "vue";
 
-const store = useStore()
+const store = useMainStore()
 
-const notificationVisible = computed(() => store.getters.notificationVisible);
-const notificationMessage = computed(() => store.getters.notificationMessage);
+const notificationVisible = computed(() => store.notificationVisible);
+const notificationMessage = computed(() => store.notificationMessage);
 </script>
