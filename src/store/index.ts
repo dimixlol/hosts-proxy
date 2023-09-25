@@ -1,5 +1,5 @@
 import {defineStore} from "pinia";
-import {APIClient} from "../api/client";
+import {APIClient, APIResponse} from "../api/client";
 
 export const useMainStore = defineStore( {
     id: "main",
@@ -14,7 +14,7 @@ export const useMainStore = defineStore( {
         _testCookie: import.meta.env.VITE_COOKIE_FOR_TEST,
         _notificationVisible: false,
         _notificationMessage: "Smth went wrong",
-        _slugData: {},
+        _slugData: {} as APIResponse,
     }),
 
     getters: {

@@ -1,8 +1,8 @@
 <template>
   <header>
-    <a href="/" class="link-light text-decoration-none">
+    <router-link to="/" class="link-light text-decoration-none">
       <h1 class="site-name user-select-none">{ {{ appName }}; }</h1>
-    </a>
+    </router-link>
     <notification class="notification-container  min-vw-100 end-0 position-absolute d-flex justify-content-center"/>
   </header>
     <router-view id="app" class="d-flex flex-grow-1 flex-column"/>
@@ -63,7 +63,6 @@ body { --bs-body-font-family: 'Share Tech Mono', monospace; }
 <script setup lang="ts">
 import Notification from "./components/Notification.vue";
 import { useMainStore } from "./store";
-
 const store = useMainStore();
 const appName = store.appName;
 const copyRightString = store.copyRightString;
