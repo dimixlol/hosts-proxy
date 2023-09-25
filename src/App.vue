@@ -11,6 +11,14 @@
     </footer>
 </template>
 
+<script setup lang="ts">
+import Notification from "./components/Notification.vue";
+import { useMainStore } from "./store";
+const store = useMainStore();
+const appName = store.appName;
+const copyRightString = store.copyRightString;
+</script>
+
 <style lang="scss">
 @use "assets/scss/variables" as v;
 @import "bootstrap/scss/functions";
@@ -59,11 +67,3 @@ h6 {
 .notification-container { top: -2.5rem;max-height: 10em; }
 body { --bs-body-font-family: 'Share Tech Mono', monospace; }
 </style>
-
-<script setup lang="ts">
-import Notification from "./components/Notification.vue";
-import { useMainStore } from "./store";
-const store = useMainStore();
-const appName = store.appName;
-const copyRightString = store.copyRightString;
-</script>

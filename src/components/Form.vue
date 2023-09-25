@@ -42,20 +42,16 @@ const submitForm = (e:any) => {
 </script>
 
 <style lang="scss">
-
 @import "bootstrap/scss/functions";
 @import "bootstrap/scss/variables";
 @import "bootstrap/scss/mixins";
-
+.is-invalid { border: inset 1px red!important; }
 .form-control::placeholder {
   color: rgba(0,0,0,0.25)!important; text-align: center;
   @include media-breakpoint-up(md) {
   text-align: left;
   }
 }
-
-.is-invalid { border: inset 1px red!important; }
-
 input {
   &.form-size {
     min-height: calc(1.5em + 1rem + calc(var(--bs-border-width) * 2));
