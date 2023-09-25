@@ -8,7 +8,7 @@
           <path id="circle" d="M 100, 100 m -75, 0 a 75, 75 0 1, 0 150, 0 a 75, 75 0 1, 0 -150, 0 "/>
         </defs>
         <text class="text text-uppercase" transform="matrix(1.6, 0, 0, 1.6, 130, 130)">
-          <textPath   xlink:href="#circle">
+          <textPath xlink:href="#circle">
             Never Gonna Give You Up Never Gonna Let You Down
           </textPath>
         </text>

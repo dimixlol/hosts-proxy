@@ -1,5 +1,7 @@
 import {defineStore} from "pinia";
 import {APIClient, APIResponse} from "../api/client";
+import {inject} from "vue";
+import VueCookies from "vue-cookies";
 
 export const useMainStore = defineStore( {
     id: "main",
@@ -15,6 +17,7 @@ export const useMainStore = defineStore( {
         _notificationVisible: false,
         _notificationMessage: "Smth went wrong",
         _slugData: {} as APIResponse,
+        _showEgg: false,
     }),
 
     getters: {
@@ -33,6 +36,7 @@ export const useMainStore = defineStore( {
         notificationVisible: (state: any) => state._notificationVisible,
         notificationMessage: (state: any) => state._notificationMessage,
         slugData: (state: any) => state._slugData,
+        showEgg: (state: any) => state._showEgg,
     },
 
     actions: {
@@ -47,6 +51,14 @@ export const useMainStore = defineStore( {
             this.setNotificationMessage(message)
             this._toggleNotification()
             setTimeout(() => this._toggleNotification(), 2000)
+        },
+         toggleEgg() {
+            // @ts-ignore
+             const $cookies = inject<VueCookies>('$cookies')
+            if (Math.floor(Math.random() * 100) == 50 || $cookies.get("testCookie") === this.testCookie) {
+                this._showEgg = !this._showEgg;
+                setTimeout(() => this._showEgg = !this._showEgg, 2000);
+            }
         }
     }
 })

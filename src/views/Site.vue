@@ -1,67 +1,53 @@
 <template>
   <div>
-    <div class="z-1 siteview-container align-self-center w-50 d-flex flex-column justify-content-center flex-grow-1 align-items-center">
-      <div class="p-1 fs-4 user-select-none">
-        Site for
-        `<span>{{store.slugData.host}}</span>`@
-        `<span>{{store.slugData.ip}}</span>`
+    <div class="z-1 align-self-center w-50 d-flex flex-column justify-content-center flex-grow-1 align-items-center">
+      <div class="p-1 user-select-none text-center">
+        Link for
+        <span class="fs-5">{{store.slugData.host}}</span>
+        at
+        <span class="fs-5">{{store.slugData.ip}}</span>
         was created
       </div>
-      <div class="p-5 siteview-name">
+      <div class="pt-5 link-name">
         <a :href="siteNameWithSchema" class="link-light text-decoration-none">{{siteName}}</a>
       </div>
     </div>
-  <Egg v-model:eggVisible="eggToggle"/>
-  <button id="testBTN" style="display:none" @click="toggleEgg"></button>
-
+  <egg v-model:eggVisible="store.showEgg"/>
   </div>
 </template>
 
-<!--<script lang="ts">-->
-<!--export default {-->
-<!--  methods:-->
-<!--      {-->
-<!--        beforeRouteEnter(to, from, next) {-->
-<!--          next(vm => {-->
-<!--            vm.onBeforeEnter()-->
-<!--          })-->
-<!--        }-->
-<!--      }-->
-<!--}-->
-
-<!--</script>-->
-
 <script lang="ts" setup>
-import {inject, onMounted, ref} from "vue";
+import {onMounted, ref} from "vue";
 import {useMainStore} from "../store";
-import VueCookies from "vue-cookies";
 import Egg from "../components/Egg.vue";
+import {useRouter} from "vue-router";
+
 const store = useMainStore()
-const siteName = store.slugData.slug + import.meta.env.VITE_PROXY_BASE;
-const siteNameWithSchema = import.meta.env.VITE_PROXY_SCHEMA + siteName;
-const $cookies = inject<VueCookies>('$cookies');
-
-  // if (!store.slugData.slug) {
-  //   router.push({name: 'Home'})
-  // }
-const eggToggle = ref(false);
-
-const toggleEgg = () => {
-  // if (Math.floor(Math.random() * 100) == 50 || $cookies.get("testCookie") === store.testCookie) {
-    eggToggle.value = !eggToggle.value;
-    // setTimeout(() => eggToggle.value = !eggToggle.value, 2000);
-  // }
-}
+const siteName = ref(store.slugData.slug + import.meta.env.VITE_PROXY_BASE);
+const siteNameWithSchema = ref(import.meta.env.VITE_PROXY_SCHEMA + siteName);
+const router = useRouter();
+// @ts-ignore
 onMounted(() => {
-  toggleEgg();
+  if (!store.slugData.slug) { router.replace({name: 'homeView'}); }
+  store.toggleEgg();
 })
 </script>
 
 <style lang="scss">
-.siteview-container {
-  height: 20em;
-}
-.siteview-name {
-  font-size: 4.5em;
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/mixins";
+.link-name {
+  font-size: 2em;
+  @include media-breakpoint-up(sm) {
+    & {
+      font-size: 3em;
+    }
+  }
+  @include media-breakpoint-up(lg) {
+    & {
+      font-size: 4.5em;
+    }
+  }
 }
 </style>
