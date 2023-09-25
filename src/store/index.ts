@@ -18,6 +18,7 @@ export const useMainStore = defineStore( {
         _notificationMessage: "Smth went wrong",
         _slugData: {} as APIResponse,
         _showEgg: false,
+        _siteShown: false,
     }),
 
     getters: {
@@ -37,6 +38,7 @@ export const useMainStore = defineStore( {
         notificationMessage: (state: any) => state._notificationMessage,
         slugData: (state: any) => state._slugData,
         showEgg: (state: any) => state._showEgg,
+        siteShown: (state: any) => state._siteShown,
     },
 
     actions: {
@@ -59,6 +61,9 @@ export const useMainStore = defineStore( {
                 this._showEgg = !this._showEgg;
                 setTimeout(() => this._showEgg = !this._showEgg, 2000);
             }
-        }
+        },
+        toggleSiteView() {
+            this._siteShown = !this._siteShown;
+        },
     }
 })

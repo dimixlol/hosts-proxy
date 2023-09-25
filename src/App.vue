@@ -1,11 +1,13 @@
 <template>
   <header>
-    <router-link to="/" class="link-light text-decoration-none">
-      <h1 class="site-name user-select-none">{ {{ appName }}; }</h1>
-    </router-link>
+    <div class="d-flex">
+      <a href="/" class="text-decoration-none">
+        <h1 class="site-name user-select-none">{ {{ appName }}; }</h1>
+      </a>
+    </div>
     <notification class="notification-container  min-vw-100 end-0 position-absolute d-flex justify-content-center"/>
   </header>
-    <router-view id="app" class="d-flex flex-grow-1 flex-column"/>
+    <home class="d-flex flex-grow-1 flex-column"/>
     <footer>
       <h6 class="footer-size user-select-none text-center opacity-25">{{ copyRightString }}</h6>
     </footer>
@@ -14,6 +16,7 @@
 <script setup lang="ts">
 import Notification from "./components/Notification.vue";
 import { useMainStore } from "./store";
+import Home from "./views/Home.vue";
 const store = useMainStore();
 const appName = store.appName;
 const copyRightString = store.copyRightString;
@@ -27,6 +30,8 @@ const copyRightString = store.copyRightString;
 
 h1 {
   white-space: nowrap;
+  cursor: pointer;
+  color: v.$main-f-color!important;
   &.site-name {
     opacity: 60%;
     font-size: 1.5em;
