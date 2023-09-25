@@ -5,12 +5,12 @@
       :name="item"
       :placeholder="props.placeholder||''"
       :required="props.required||false"
-      class="form-control form-control-lg submit"
+      class=" form-size form-font form-control  submit"
       @input="resetInvalid"
     />
 
     <input
-        class="btn btn-outline-success opacity-75"
+        class="btn btn-outline-success form-font opacity-75"
         type="submit"
         value="Create"
     />
@@ -41,7 +41,34 @@ const submitForm = (e:any) => {
 }
 </script>
 
-<style>
-.form-control::placeholder { color: rgba(0,0,0,0.25)!important; }
+<style lang="scss">
+
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/mixins";
+
+.form-control::placeholder {
+  color: rgba(0,0,0,0.25)!important; text-align: center;
+  @include media-breakpoint-up(md) {
+  text-align: left;
+  }
+}
+
 .is-invalid { border: inset 1px red!important; }
+
+input {
+  &.form-size {
+    min-height: calc(1.5em + 1rem + calc(var(--bs-border-width) * 2));
+    padding: 0.5rem 1rem;
+    border-radius: var(--bs-border-radius-lg);
+  }
+
+  &.form-font { font-size: 1.25rem; }
+
+  @include media-breakpoint-down(lg) {
+    &.form-font {
+      font-size: 0.8rem;
+    }
+  }
+}
 </style>

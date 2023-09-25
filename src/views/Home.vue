@@ -8,7 +8,6 @@
 <script lang="ts" setup>
 import Form from "../components/Form.vue";
 import Egg from "../components/Egg.vue";
-
 import VueCookies from "vue-cookies";
 import {inject, ref, reactive} from "vue";
 import {IpValidator, HostValidator} from "../validators";
@@ -53,16 +52,22 @@ const createSite = (e:any) => {
 </script>
 
 <style lang="scss">
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/mixins";
+
 .app-form {
+  grid-template: 1fr / 1fr;
+  grid-gap: 1em;
   padding: 10em 1em 1em 1em;
-  grid-template: 1fr / 1fr 1fr;
-  grid-gap:  1em;
-  :last-child {
-    grid-column: 1/3;
-    width: 75%;
-    justify-self: center;
+
+  @include media-breakpoint-up(md) {
+    grid-template: 1fr / 1fr 1fr;
+      :last-child {
+      grid-column: 1/3;
+      width: 75%;
+      justify-self: center;
+    }
   }
 }
-
-
 </style>
