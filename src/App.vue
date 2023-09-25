@@ -1,6 +1,6 @@
 <template>
   <header>
-    <h1 class="user-select-none">{ {{ appName }}; }</h1>
+    <a href="/" class="link-light text-decoration-none"><h1 class="user-select-none">{ {{ appName }}; }</h1></a>
     <notification class="notification-container  min-vw-100 end-0 position-absolute d-flex justify-content-center"/>
   </header>
     <router-view id="app" class="d-flex flex-grow-1 flex-column"/>
@@ -19,8 +19,9 @@ body { --bs-body-font-family: 'Share Tech Mono', monospace; }
 
 <script setup lang="ts">
 import Notification from "./components/Notification.vue";
-import { useStore} from "vuex";
-const store = useStore();
-const appName = store.getters.appName;
-const copyRightString = store.getters.copyRightString;
+import { useMainStore } from "./store";
+
+const store = useMainStore();
+const appName = store.appName;
+const copyRightString = store.copyRightString;
 </script>
