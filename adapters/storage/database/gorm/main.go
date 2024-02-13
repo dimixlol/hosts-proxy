@@ -1,24 +1,24 @@
-package database
+package gorm
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/dimixlol/knowyourwebsite/config"
-	"github.com/dimixlol/knowyourwebsite/logging"
-	"github.com/dimixlol/knowyourwebsite/models"
-	"github.com/dimixlol/knowyourwebsite/ports"
+	"github.com/dimixlol/hosts-proxy/config"
+	"github.com/dimixlol/hosts-proxy/logging"
+	"github.com/dimixlol/hosts-proxy/models"
+	"github.com/dimixlol/hosts-proxy/ports"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-type gormPersister struct {
+type Connector struct {
 	ctx context.Context
 	DB  *gorm.DB
 }
 
-func (g *gormPersister) GetOrCreateWithTrack(instance ports.TrackedModel, model interface{}) error {
+func (g *Connector) GetOrCreateWithTrack(instance ports.TrackedModel, model interface{}) error {
 	err := g.DB.FirstOrCreate(instance, model).Error
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func (g *gormPersister) GetOrCreateWithTrack(instance ports.TrackedModel, model 
 	return nil
 }
 
-func (g *gormPersister) CreateURL(url *models.URL) error {
+func (g *Connector) CreateURL(url *models.URL) error {
 	res := g.DB.First(&url, "host_id = ? AND ip_id = ?", url.Host.ID, url.IP.ID)
 
 	if errors.Is(res.Error, gorm.ErrRecordNotFound) {
@@ -38,7 +38,7 @@ func (g *gormPersister) CreateURL(url *models.URL) error {
 	return res.Error
 }
 
-func (g *gormPersister) GetURLBySlug(slug string) (ports.URL, error) {
+func (g *Connector) GetURLBySlug(slug string) (ports.URL, error) {
 	url := &models.URL{}
 	res := g.DB.Preload(clause.Associations).First(url, "slug = ?", slug)
 
@@ -52,7 +52,7 @@ func (g *gormPersister) GetURLBySlug(slug string) (ports.URL, error) {
 	return url, nil
 }
 
-func NewDatabasePersister(ctx context.Context) ports.Persister {
+func New(ctx context.Context) *Connector {
 	logger := logging.GetLogger(ctx)
 	db, err := gorm.Open(
 		postgres.Open(
@@ -72,12 +72,13 @@ func NewDatabasePersister(ctx context.Context) ports.Persister {
 		panic(err)
 	}
 
+	db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
 	err = db.AutoMigrate(&models.Host{}, &models.IP{}, &models.URL{})
 	if err != nil {
 		panic(err)
 	}
 
-	return &gormPersister{
+	return &Connector{
 		ctx: ctx,
 		DB:  db,
 	}
