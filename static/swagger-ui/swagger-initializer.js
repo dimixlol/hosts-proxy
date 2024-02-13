@@ -1,20 +1,20 @@
 window.onload = function() {
-  //<editor-fold desc="Changeable Configuration Block">
-
-  // the following lines will be replaced by docker/configurator, when it runs in a docker-container
   window.ui = SwaggerUIBundle({
-    url: "/api/v1/swagger.json",
+    url: "/api/swagger.json",
     dom_id: '#swagger-ui',
     deepLinking: true,
     presets: [
       SwaggerUIBundle.presets.apis,
-      // SwaggerUIStandalonePreset
     ],
-    // plugins: [
-    //   SwaggerUIBundle.plugins.DownloadUrl
-    // ],
-    // layout: "StandaloneLayout"
+    requestInterceptor: (req) => {
+      const cookieName = "__persister_csrf__"
+      const header = document.cookie
+          .split("; ")
+          .find((item) => item.startsWith(cookieName))
+      if (header) {
+        req.headers["X-CSRF-TOKEN"] = header.split(`${cookieName}=`)[1]
+      }
+      return req;
+    }
   });
-
-  //</editor-fold>
 };
