@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"github.com/dimixlol/knowyourwebsite/logging"
+	"github.com/dimixlol/hosts-proxy/logging"
 	"github.com/gin-gonic/gin"
 	"github.com/juju/errors"
 	"github.com/loopfz/gadgeto/tonic"
@@ -19,16 +19,6 @@ type UnsuccessfulResponse struct {
 	Status int         `json:"status" example:"500"`
 	Err    interface{} `json:"error"`
 }
-
-//func (dr *SuccessfulResponse) GetData() interface{} {
-//	return dr.Data
-//}
-//func (dr *UnsuccessfulResponse) Error() string {
-//	return dr.Err.(string)
-//}
-//func (dr *Response) GetStatus() int {
-//	return dr.Status
-//}
 
 func NewSuccessfulResponse(status int, data interface{}) *SuccessfulResponse {
 	return &SuccessfulResponse{

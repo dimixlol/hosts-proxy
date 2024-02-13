@@ -13,10 +13,12 @@ func GetSlugFromHost(host string) string {
 	domainNumber := len(subdomains)
 
 	// domain.tld or domain or ""
-	if domainNumber < 3 {
-		panic("err durint checking the slug for host: " + host + "")
+	if domainNumber < 2 {
+		panic("err during checking the slug for host: " + host + "")
 		// subdomain.domain.tld
-	} else if domainNumber == 3 {
+	}
+
+	if domainNumber == 3 || domainNumber == 2 {
 		return subdomains[0]
 	}
 
