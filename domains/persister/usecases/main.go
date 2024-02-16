@@ -2,13 +2,13 @@ package usecases
 
 import (
 	"context"
-	"github.com/dimixlol/knowyourwebsite/config"
-	"github.com/dimixlol/knowyourwebsite/models"
-	"github.com/dimixlol/knowyourwebsite/ports"
-	"github.com/dimixlol/knowyourwebsite/utils"
+	"github.com/dimixlol/hosts-proxy/config"
+	"github.com/dimixlol/hosts-proxy/models"
+	"github.com/dimixlol/hosts-proxy/ports"
+	"github.com/dimixlol/hosts-proxy/utils"
 )
 
-func NewPersistentSite(ctx context.Context, persister ports.Persister, host *models.Host, ip *models.IP) ports.URL {
+func NewPersistentSite(ctx context.Context, persister ports.Storage, host *models.Host, ip *models.IP) ports.URL {
 	var err error
 
 	err = persister.GetOrCreateWithTrack(host, &models.Host{Host: host.Host})

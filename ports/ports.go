@@ -1,6 +1,6 @@
 package ports
 
-import "github.com/dimixlol/knowyourwebsite/models"
+import "github.com/dimixlol/hosts-proxy/models"
 
 type (
 	CacheManager interface {
@@ -21,7 +21,7 @@ type (
 		GetSlug() string
 	}
 
-	Persister interface {
+	Storage interface {
 		GetOrCreateWithTrack(instance TrackedModel, model interface{}) error
 		GetURLBySlug(slug string) (URL, error)
 		CreateURL(url *models.URL) error
