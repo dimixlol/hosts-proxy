@@ -1,85 +1,96 @@
 package config
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"io/fs"
 	"strings"
-	"time"
 )
 
 type proxierConfiguration struct {
 	Host string
 	Port string
-	TLS  bool
 }
+
+type persisterConfiguration struct {
+	Host          string
+	Port          string
+	SessionSecret string
+	Session       struct {
+		Secret string
+		TTL    int
+	}
+	CSRF struct {
+		Secret string
+	}
+}
+
 type configuration struct {
-	Host       string
-	Port       string
-	SlugLength uint
-	DB         *dbConfiguration
-	Cache      *cacheConfiguration
-	Version    string
-	API        *apiConfiguration
-	Viper      *viper.Viper
-	Logging    *loggingConfiguration
-	Proxier    *proxierConfiguration
+	SlugLength  uint
+	Environment string
+	Version     string
+	Viper       *viper.Viper
+	DB          *dbConfiguration
+	Cache       *cacheConfiguration
+	API         *apiConfiguration
+	Logging     *loggingConfiguration
+	Proxier     *proxierConfiguration
+	Persister   *persisterConfiguration
 }
 
 var Configuration *configuration
 
-func CreateConfiguration(configFile, version string) {
-	cfg := newConfiguration(version)
-	cfg.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	cfg.AutomaticEnv()
-	cfg.SetConfigFile(configFile)
-	err := cfg.ReadInConfig()
+func New(configFile, version string) {
+	boostrap(version)
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
+	viper.SetConfigFile(configFile)
+	err := viper.ReadInConfig()
 	if err != nil {
 		if _, ok := err.(*fs.PathError); !ok {
 			panic(err)
 		}
 	}
-	err = cfg.Unmarshal(&Configuration)
+	err = viper.Unmarshal(&Configuration)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func newConfiguration(version string) *viper.Viper {
-	cfg := viper.New()
-	cfg.SetDefault("host", "")
-	cfg.SetDefault("port", "8080")
-	cfg.SetDefault("slugLength", 10)
-	cfg.SetDefault("db.port", "2345")
-	cfg.SetDefault("db.host", "localhost")
-	cfg.SetDefault("db.user", "pq_local_app")
-	cfg.SetDefault("db.password", "pq_local_app")
-	cfg.SetDefault("db.name", "knowyourwebsite")
-	cfg.SetDefault("db.sslmode", "disable")
-	cfg.SetDefault("db.timezone", "UTC")
-	cfg.SetDefault("db.driver", "postgres")
-	cfg.SetDefault("cache.host", "localhost")
-	cfg.SetDefault("cache.port", "6379")
-	cfg.SetDefault("cache.password", "")
-	cfg.SetDefault("cache.db", 0)
-	cfg.SetDefault("cache.size", 10000)
-	cfg.SetDefault("cache.ttl", 24*time.Hour)
-	cfg.SetDefault("logging.level", "info")
-	cfg.SetDefault("api.title", "Knowyourwebsite API")
-	cfg.SetDefault("api.description", "Manage mapping between domains and IPs")
-	cfg.SetDefault("api.contact.name", "dimixlol")
-	cfg.SetDefault("api.contact.email", "dmitriy.t@dmxlol.io")
-	cfg.SetDefault("api.contact.url", "https://dmxlol.io")
-	cfg.SetDefault("api.license.name", "GPLv3")
-	cfg.SetDefault("api.license.url", "https://github.com/dimixlol/knowyourwebsite/raw/master/LICENSE")
-	cfg.SetDefault("api.logo.url", "https://redocly.github.io/redoc/petstore-logo.png")
-	cfg.SetDefault("api.logo.color", "#fff")
-	cfg.SetDefault("api.logo.altText", "Dimix Logo")
-	cfg.SetDefault("api.logo.href", "https://dmxlol.io")
-	cfg.SetDefault("proxier.host", "localhost")
-	cfg.SetDefault("proxier.port", "8081")
-	cfg.SetDefault("proxier.tls", false)
+func boostrap(version string) {
+	viper.SetDefault("slugLength", 10)
+	viper.SetDefault("environment", gin.DebugMode)
+	viper.SetDefault("db.port", "2345")
+	viper.SetDefault("db.host", "localhost")
+	viper.SetDefault("db.user", "hpdb")
+	viper.SetDefault("db.password", "hpdb")
+	viper.SetDefault("db.name", "hpdb")
+	viper.SetDefault("db.sslmode", "disable")
+	viper.SetDefault("db.timezone", "UTC")
+	viper.SetDefault("db.driver", "postgres")
+	viper.SetDefault("cache.host", "localhost")
+	viper.SetDefault("cache.port", "6379")
+	viper.SetDefault("cache.password", "")
+	viper.SetDefault("cache.db", 0)
+	viper.SetDefault("cache.size", 10000)
+	viper.SetDefault("cache.ttl", "24h")
+	viper.SetDefault("logging.level", "info")
+	viper.SetDefault("api.title", "Hosts-proxy API")
+	viper.SetDefault("api.description", "Manage mapping between domains and IPs")
+	viper.SetDefault("api.contact.email", "john.doe@mail.com")
+	viper.SetDefault("api.license.name", "AGPLv3")
+	viper.SetDefault("api.license.url", "https://github.com/dimixlol/hosts-proxy/raw/master/LICENSE")
+	viper.SetDefault("api.logo.url", "/api/redoc/logo.png")
+	viper.SetDefault("api.logo.color", "#fff")
+	viper.SetDefault("api.logo.href", "https://foo.bar")
+	viper.SetDefault("persister.host", "localhost")
+	viper.SetDefault("persister.port", "8080")
+	viper.SetDefault("persister.session.secret", "hello-world")
+	viper.SetDefault("persister.session.ttl", 30)
+	viper.SetDefault("persister.csrf.secret", "hello-world")
+	viper.SetDefault("proxier.host", "localhost")
+	viper.SetDefault("proxier.port", "8081")
 	// constant
-	cfg.Set("version", version)
-	cfg.Set("api.version", "v1")
-	return cfg
+	viper.Set("version", version)
+	viper.Set("api.version", "v1")
 }
