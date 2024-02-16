@@ -3,11 +3,11 @@ package usecases
 import (
 	"bytes"
 	"crypto/tls"
-	proxierPorts "github.com/dimixlol/knowyourwebsite/domains/proxier/ports"
-	"github.com/dimixlol/knowyourwebsite/logging"
-	"github.com/dimixlol/knowyourwebsite/pkg/compress"
-	"github.com/dimixlol/knowyourwebsite/ports"
-	"github.com/dimixlol/knowyourwebsite/utils"
+	"fmt"
+	"github.com/dimixlol/hosts-proxy/logging"
+	"github.com/dimixlol/hosts-proxy/pkg/compressor"
+	"github.com/dimixlol/hosts-proxy/ports"
+	"github.com/dimixlol/hosts-proxy/utils"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
@@ -18,13 +18,10 @@ import (
 )
 
 var (
-	compressor compress.Compressor
-	modifiers  = []proxierPorts.Modifier{embedUrlReplacer(), hostReplacer(), redirectReplacer()}
+	modifiers = []Modifier{embeddedUrlReplacer(), hostReplacer(), redirectReplacer()}
 )
 
-func init() {
-	compressor = compress.NewCompressor()
-}
+type Modifier func(c *gin.Context, url ports.URL, body string, response *http.Response) (string, error)
 
 func handleError(c *gin.Context, err error) {
 	c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -32,7 +29,7 @@ func handleError(c *gin.Context, err error) {
 	})
 }
 
-func NewRequestProxier(cache ports.CacheManager) gin.HandlerFunc {
+func NewRequestProxier(cache ports.CacheManager, dataCompressor compressor.Compressor) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		host := c.Request.Host
 		slug := utils.GetSlugFromHost(host)
@@ -43,6 +40,7 @@ func NewRequestProxier(cache ports.CacheManager) gin.HandlerFunc {
 			return
 		}
 
+		fmt.Println(host, slug, urlFromCache)
 		remote, err := url.Parse(httpSchema + urlFromCache.GetIP())
 
 		if err != nil {
@@ -51,7 +49,7 @@ func NewRequestProxier(cache ports.CacheManager) gin.HandlerFunc {
 		}
 
 		proxy := httputil.NewSingleHostReverseProxy(remote)
-		proxy.ModifyResponse = modifyResponse(c, modifiers, urlFromCache)
+		proxy.ModifyResponse = modifyResponse(c, modifiers, dataCompressor, urlFromCache)
 		proxy.Director = func(req *http.Request) {
 			req.Header = c.Request.Header
 			req.Host = urlFromCache.GetHost()
@@ -68,11 +66,12 @@ func NewRequestProxier(cache ports.CacheManager) gin.HandlerFunc {
 	}
 }
 
-func modifyResponse(c *gin.Context, modifiers []proxierPorts.Modifier, url ports.URL) func(*http.Response) error {
+func modifyResponse(c *gin.Context, modifiers []Modifier, dataCompressor compressor.Compressor, url ports.URL) func(*http.Response) error {
 	return func(res *http.Response) error {
 		logger := logging.GetLogger(c)
 		encoding := res.Header.Get("Content-Encoding")
-		body := compressor.Decompress(encoding, res.Body)
+
+		body := dataCompressor.Decompress(encoding, res.Body)
 
 		for i, modifier := range modifiers {
 			var err error
@@ -83,7 +82,7 @@ func modifyResponse(c *gin.Context, modifiers []proxierPorts.Modifier, url ports
 			}
 		}
 
-		bodyBytes := compressor.Compress(encoding, body)
+		bodyBytes := dataCompressor.Compress(encoding, body)
 		bodyContentLength := len(bodyBytes)
 		res.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		res.ContentLength = int64(bodyContentLength)
