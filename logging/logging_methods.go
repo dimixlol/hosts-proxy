@@ -15,7 +15,7 @@ func (l *Logger) Trace(ctx context.Context, begin time.Time, fc func() (sql stri
 		return
 	}
 	elapsed := time.Since(begin)
-	switch { //TODO: must be debug logs
+	switch {
 	case err != nil && l.loggingBackend.Level() == zap.ErrorLevel && (!errors.Is(err, gorm.ErrRecordNotFound) || !l.gorm.IgnoreRecordNotFoundError):
 		sql, rows := fc()
 		if rows == -1 {

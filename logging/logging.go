@@ -3,7 +3,7 @@ package logging
 import (
 	"context"
 	"fmt"
-	"github.com/dimixlol/knowyourwebsite/config"
+	"github.com/dimixlol/hosts-proxy/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -37,8 +37,8 @@ func getZapLogger() *zap.Logger {
 			EncodeDuration: zapcore.SecondsDurationEncoder,
 			EncodeCaller:   zapcore.ShortCallerEncoder,
 		},
-		OutputPaths:      []string{"stderr"},
-		ErrorOutputPaths: []string{"stderr"},
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stdout"},
 	}
 
 	zapLogger := zap.Must(cfg.Build())

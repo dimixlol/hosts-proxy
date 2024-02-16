@@ -1,4 +1,4 @@
-APP="knowyourwebsite"
+APP="hosts-proxy"
 GO?=go
 VERSION?=v0.0.1b
 

@@ -1,7 +1,7 @@
 package logging
 
 import (
-	"github.com/dimixlol/knowyourwebsite/config"
+	"github.com/dimixlol/hosts-proxy/config"
 	"github.com/gin-gonic/gin"
 	"strings"
 	"time"
