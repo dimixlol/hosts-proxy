@@ -1,37 +1,34 @@
 import {defineStore} from "pinia";
-import {APIClient, APIResponse} from "../api/client";
+import {APIClient, APISlugDataResponse} from "../api/client";
 import {inject} from "vue";
 import VueCookies from "vue-cookies";
 
-export const useMainStore = defineStore( {
+export const useStore = defineStore( {
     id: "main",
-
     state: () => ({
-        _appName: "knowYourWebsite",
+        _appName: import.meta.env.VITE_APP_NAME,
         _client: new APIClient({
             API_URL: import.meta.env.VITE_API_URL,
             CLIENT_TIMEOUT: import.meta.env.VITE_CLIENT_TIMEOUT,
             HEADERS: import.meta.env.VITE_HEADERS,
+            API_VERSION: import.meta.env.VITE_API_VERSION
         }),
         _testCookie: import.meta.env.VITE_COOKIE_FOR_TEST,
+        _notificationMessage: "Something went wrong :(",
+        _slugData: {} as APISlugDataResponse,
         _notificationVisible: false,
-        _notificationMessage: "Smth went wrong",
-        _slugData: {} as APIResponse,
         _showEgg: false,
         _siteShown: false,
+        _$cookies: inject<VueCookies>('$cookies')
     }),
-
     getters: {
         appName: (state: any) => state._appName,
         client: (state: any) => state._client,
         copyRightString: (state:any) => {
             const startYear = 2023;
-            let yearSlug = String(startYear);
             const current = new Date().getFullYear();
-            if (startYear !== current) {
-                yearSlug += "-"+String(current);
-            }
-            return `Copyright © ${yearSlug} - ${state._appName} | All Rights Reserved `;
+            const yearSlug = startYear === current ? String(startYear) : `${startYear}-${current}`;
+            return `Copyright © ${yearSlug} - ${state._appName} | All Rights Reserved`;
         },
         testCookie: (state: any) => state._testCookie,
         notificationVisible: (state: any) => state._notificationVisible,
@@ -39,6 +36,7 @@ export const useMainStore = defineStore( {
         slugData: (state: any) => state._slugData,
         showEgg: (state: any) => state._showEgg,
         siteShown: (state: any) => state._siteShown,
+        csrfToken: (state: any) => state._$cookies.get(import.meta.env.VITE_CSRF_COOKIE_NAME)
     },
 
     actions: {
@@ -55,9 +53,7 @@ export const useMainStore = defineStore( {
             setTimeout(() => this._toggleNotification(), 2000)
         },
          toggleEgg() {
-            // @ts-ignore
-             const $cookies = inject<VueCookies>('$cookies')
-            if (Math.floor(Math.random() * 100) == 50 || $cookies.get("testCookie") === this.testCookie) {
+            if (Math.floor(Math.random() * 100)%7 == 0 || this._$cookies.get("testCookie") === this.testCookie) {
                 this._showEgg = !this._showEgg;
                 setTimeout(() => this._showEgg = !this._showEgg, 2000);
             }

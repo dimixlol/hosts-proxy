@@ -4,16 +4,17 @@ export interface APIClientConfig {
     API_URL: string;
     CLIENT_TIMEOUT: number;
     HEADERS: object;
-
+    API_VERSION: string;
 }
 
+export interface APISlugDataResponse {
+    slug: string;
+    host: string;
+    ip: string;
+}
 export interface APIResponse {
     status: number
-    data: {
-        slug: string;
-        host: string;
-        ip: string;
-    }
+    data: APISlugDataResponse
 }
 
 export interface APIError {
@@ -23,13 +24,15 @@ export interface APIError {
 
 export class APIClient {
     private client: Axios;
+    private apiVersion: string;
     constructor(config: APIClientConfig) {
         this.client = axios.create({
             baseURL: config.API_URL,
             timeout: config.CLIENT_TIMEOUT,
-            withCredentials: false,
-            // headers: config.HEADERS,
+            headers: config.HEADERS,
+            withCredentials: true,
         })
+        this.apiVersion = config.API_VERSION
     }
     createSite(host: string, ip: string): Promise<APIResponse|APIError> {
         const start = Date.now();
@@ -40,11 +43,13 @@ export class APIClient {
                 setTimeout(() => {resolve({data: {slug: "test", host: "domain.tld", ip: "1.1.1.1"}, status: 200})}, 100);
             })
         }
-
-        return this.client.post("/persister/create/", {host, ip})// {headers: {"X-CSRF-Token": csrf}}
+        return this.client.post(`/api/${this.apiVersion}/persister/create`, {host, ip})
             .then((resp: AxiosResponse) => {
               console.log({response: resp.data, latency: Date.now() - start, status: resp.status})
-              return resp.data
+              if ("error" in resp.data) {
+                return resp.data as APIError
+              }
+              return resp.data as APIResponse
             })
             .catch((err) => {
                 console.log({err: err.message, latency: Date.now() - start})
@@ -52,23 +57,13 @@ export class APIClient {
             })
     }
 
-    createCSRFToken() {
-        this.client.get("/csrf")
+    ping(): Promise<APIResponse> {
+        return this.client.get("/ping")
             .then((res: AxiosResponse) => {
-                return res.data
+                return res.data as APIResponse
             }).catch((err) => {
+                console.error(err)
                 throw err;
             })
     };
-
-    private getCSRFToken() {
-        const csrf = document.getElementById("csrf_token")
-        if (csrf !== null) {
-            const token = csrf.getAttribute("content")
-            if (token !== null) {
-                return token
-            }
-        }
-        return null
-    }
 }
