@@ -1,11 +1,12 @@
 <template>
-  <form @submit.prevent="submitForm">
+  <form @submit.prevent="submitForm" form-data="">
     <input v-for="(props, item) in formData"
       :type="props.type||'text'"
       :name="item"
       :placeholder="props.placeholder||''"
       :required="props.required||false"
-      class=" form-size form-font form-control  submit"
+      :value="props.value"
+      class="form-size form-font form-control submit bg-primary"
       @input="resetInvalid"
     />
 
@@ -31,25 +32,24 @@ const submitForm = (e:any) => {
   Object.keys(props.formData).every((item: string) => {
     const validator = props.formData[item].validator
     if (validator && !new validator(e.target[item].value).validate()) {
-      console.log(`Validation failed for ${item}`)
+      console.debug(`Validation failed for ${item}`)
       setInvalid(e.target[item])
       return false
     }
-    console.log(`Validation passed for ${item}`)
+    console.debug(`Validation passed for ${item}`)
     return true
   }) && emit("submit", e)
 }
 </script>
 
 <style lang="scss">
-@import "bootstrap/scss/functions";
-@import "bootstrap/scss/variables";
-@import "bootstrap/scss/mixins";
+@import "../assets/scss/main";
+
 .is-invalid { border: inset 1px red!important; }
 .form-control::placeholder {
   color: rgba(0,0,0,0.25)!important; text-align: center;
   @include media-breakpoint-up(md) {
-  text-align: left;
+    text-align: left;
   }
 }
 input {

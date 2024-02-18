@@ -1,8 +1,8 @@
 <template>
   <transition name="egg">
-  <div class="d-flex justify-content-center align-items-center w-100 h-100 top-0 start-0 z-0 position-absolute" v-if="eggVisible">
-    <div class="egg-container">
-      <img class="position-absolute start-0 top-0 rounded-circle top-50 start-50 translate-middle" src="/rick.gif" alt="rolling">
+  <div class="d-flex justify-content-center align-items-center w-100 h-100 top-0 start-0 z-0 position-absolute overflow-hidden" v-if="eggVisible">
+    <div class="egg-container position-relative">
+      <img class="position-absolute start-0 top-0 rounded-circle top-50 start-50 translate-middle" src="/rick.gif" alt="rickroll">
       <svg viewBox="116 121 250 250" width="600" height="600">
         <defs>
           <path id="circle" d="M 100, 100 m -75, 0 a 75, 75 0 1, 0 150, 0 a 75, 75 0 1, 0 -150, 0 "/>
@@ -29,7 +29,6 @@ defineProps({
 
 <style lang="scss" scoped>
 .egg-container {
-  position: relative;
   img {
     height: 300px;
     width: 300px;
@@ -45,11 +44,10 @@ defineProps({
   }
 }
 @keyframes rotation {
-  from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-.egg-enter-active, .egg-leave-active { transition: all 3s ease }
-.egg-enter-from, .egg-leave-to, .egg-enter-from, .egg-leave-to { opacity: 0 }
+.egg-enter-active, .egg-leave-active { transition: all 5s ease }
+.egg-enter-from, .egg-leave-to { opacity: 0 }
 .egg-enter-from { transform: translateX(-100%) }
 .egg-leave-to { transform: translateX(100%) }
 </style>
