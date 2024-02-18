@@ -1,50 +1,59 @@
 <template>
-  <header>
-    <div class="d-flex">
-      <a href="/" class="text-decoration-none">
-        <h1 class="site-name user-select-none">{ {{ appName }}; }</h1>
-      </a>
-    </div>
-    <notification class="notification-container  min-vw-100 end-0 position-absolute d-flex justify-content-center"/>
-  </header>
-    <home class="d-flex flex-grow-1 flex-column"/>
+    <header>
+      <div class="d-flex">
+        <a href="/" class="text-decoration-none px-3 pt-3">
+          <h1 class="text-primary site-name user-select-none text-center m-0 pointer text-nowrap">{ {{ store.appName }}; }</h1>
+        </a>
+      </div>
+      <Notification class="notification-container min-vw-100 end-0 position-absolute d-flex justify-content-center"/>
+    </header>
+  <main class="d-flex flex-grow-1 flex-column justify-content-center">
+    <TransitionGroup name="main-page">
+        <FormView v-if="backendAlive === true" class="d-flex flex-column"/>
+        <SpinnerView v-if="backendAlive === undefined" class="align-self-center"/>
+        <DownView v-if="backendAlive === false" class="align-self-center"/>
+    </TransitionGroup>
+  </main>
     <footer>
-      <h6 class="footer-size user-select-none text-center opacity-25">{{ copyRightString }}</h6>
+      <h6 class="footer-size user-select-none text-center text-nowrap opacity-25">{{ copyRightString }}</h6>
     </footer>
 </template>
 
 <script setup lang="ts">
+import {onBeforeMount, type Ref, ref} from "vue";
+import { useStore } from "./store";
+import FormView from "./views/FormView.vue";
+import SpinnerView from "./views/SpinnerView.vue";
+import DownView from "./views/DownView.vue";
 import Notification from "./components/Notification.vue";
-import { useMainStore } from "./store";
-import Home from "./views/Home.vue";
-const store = useMainStore();
-const appName = store.appName;
+
+const store = useStore();
+const backendAlive: Ref<boolean|undefined> = ref(undefined);
 const copyRightString = store.copyRightString;
+
+onBeforeMount(() =>
+    setTimeout(() =>
+    store.client.ping()
+        .then((v) => backendAlive.value = v.data==="pong")
+        .catch((e) => console.error(e))
+    ,500)
+)
 </script>
 
 <style lang="scss">
-@use "assets/scss/variables" as v;
-@import "bootstrap/scss/functions";
-@import "bootstrap/scss/variables";
-@import "bootstrap/scss/mixins";
+@import "assets/scss/main";
 
 h1 {
-  white-space: nowrap;
-  cursor: pointer;
-  color: v.$main-f-color!important;
   &.site-name {
     opacity: 60%;
     font-size: 1.5em;
-    padding: .3em;
-    text-align: center;
     @include media-breakpoint-up(sm) {
       & {
-        font-size: 2.25em;
+        font-size: 2em;
       }
     }
     @include media-breakpoint-up(lg) {
       & {
-        font-size: 3em;
         text-align: left;
       }
     }
@@ -52,7 +61,6 @@ h1 {
 }
 
 h6 {
-  white-space: nowrap;
   &.footer-size {
     font-size: .5em;
     @include media-breakpoint-up(sm) {
@@ -68,7 +76,20 @@ h6 {
   }
 }
 
-#app-container { background: v.$main-bg-color; color: v.$main-f-color; }
 .notification-container { top: -2.5rem;max-height: 10em; }
-body { --bs-body-font-family: 'Share Tech Mono', monospace; }
+body {
+  --bs-body-font-family: 'Share Tech Mono', monospace;
+}
+.main-page-enter-active, .main-page-leave-active {
+  transition: all 1s ease;
+  position: absolute;
+  width: 100%;
+}
+.main-page-enter-from, .main-page-leave-to {
+  opacity: 0;
+  fill-opacity: 0;
+}
+.main-page-leave-to {
+  transform: scale(.001);
+}
 </style>

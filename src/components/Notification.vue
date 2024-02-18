@@ -9,8 +9,8 @@
 </template>
 
 <script setup lang="ts">
-import {useMainStore} from "../store";
-const store = useMainStore()
+import {useStore} from "../store";
+const store = useStore()
 </script>
 
 <style>
