@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node_modules/.bin/vite",
+    "dev-backend": "node_modules/.bin/vite --mode='local-backend'",
     "build": "vite build",
     "preview": "node_modules/.bin/vite preview"
   },
