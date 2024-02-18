@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/dimixlol/hosts-proxy/config"
 	"github.com/dimixlol/hosts-proxy/logging"
 	"github.com/dimixlol/hosts-proxy/static"
 	"github.com/gin-contrib/cors"
@@ -18,7 +19,7 @@ func getDefaultMiddleWares() []gin.HandlerFunc {
 	return []gin.HandlerFunc{
 		logging.JSONLogMiddleware(),
 		gin.CustomRecovery(Recovery),
-		cors.Default(),
+		cors.New(*config.Configuration.CORS),
 	}
 }
 

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"io/fs"
@@ -36,6 +37,7 @@ type configuration struct {
 	Logging     *loggingConfiguration
 	Proxier     *proxierConfiguration
 	Persister   *persisterConfiguration
+	CORS        *cors.Config
 }
 
 var Configuration *configuration
@@ -60,6 +62,8 @@ func New(configFile, version string) {
 func boostrap(version string) {
 	viper.SetDefault("slugLength", 10)
 	viper.SetDefault("environment", gin.DebugMode)
+	viper.SetDefault("logging.level", "info")
+	// DB
 	viper.SetDefault("db.port", "2345")
 	viper.SetDefault("db.host", "localhost")
 	viper.SetDefault("db.user", "hpdb")
@@ -68,13 +72,14 @@ func boostrap(version string) {
 	viper.SetDefault("db.sslmode", "disable")
 	viper.SetDefault("db.timezone", "UTC")
 	viper.SetDefault("db.driver", "postgres")
+	// CACHE
 	viper.SetDefault("cache.host", "localhost")
 	viper.SetDefault("cache.port", "6379")
 	viper.SetDefault("cache.password", "")
 	viper.SetDefault("cache.db", 0)
 	viper.SetDefault("cache.size", 10000)
 	viper.SetDefault("cache.ttl", "24h")
-	viper.SetDefault("logging.level", "info")
+	// API
 	viper.SetDefault("api.title", "Hosts-proxy API")
 	viper.SetDefault("api.description", "Manage mapping between domains and IPs")
 	viper.SetDefault("api.contact.email", "john.doe@mail.com")
@@ -83,13 +88,22 @@ func boostrap(version string) {
 	viper.SetDefault("api.logo.url", "/api/redoc/logo.png")
 	viper.SetDefault("api.logo.color", "#fff")
 	viper.SetDefault("api.logo.href", "https://foo.bar")
+	// Persister
 	viper.SetDefault("persister.host", "localhost")
 	viper.SetDefault("persister.port", "8080")
 	viper.SetDefault("persister.session.secret", "hello-world")
-	viper.SetDefault("persister.session.ttl", 30)
+	viper.SetDefault("persister.session.ttl", 3600)
 	viper.SetDefault("persister.csrf.secret", "hello-world")
+	// Proxier
 	viper.SetDefault("proxier.host", "localhost")
 	viper.SetDefault("proxier.port", "8081")
+	// CORS
+	viper.SetDefault("cors.allowOrigins", []string{"http://localhost:5173"})
+	viper.SetDefault("cors.allowMethods", []string{"GET", "POST", "OPTIONS"})
+	viper.SetDefault("cors.allowHeaders", []string{"x-csrf-token", "content-type"})
+	viper.SetDefault("cors.allowCredentials", true)
+	viper.SetDefault("cors.maxAge", "12h")
+
 	// constant
 	viper.Set("version", version)
 	viper.Set("api.version", "v1")

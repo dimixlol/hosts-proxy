@@ -2,6 +2,7 @@ package persister
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/dimixlol/hosts-proxy/adapters/storage"
 	"github.com/dimixlol/hosts-proxy/config"
@@ -22,7 +23,7 @@ const (
 
 func NewHTTPPersister(ctx context.Context) *http.Server {
 	engine := utils.NewApiEngine(constructOpenApiInfo, newSessionMiddleware(), newCsrfMiddleware(), cookieSetter)
-	engine.GET(healthCheckEndpoint, nil, func(c *gin.Context) { c.AbortWithStatus(http.StatusNoContent) })
+	engine.GET(healthCheckEndpoint, nil, healthCheckHandler)
 	db := storage.NewDatabaseStorage(ctx)
 	api.NewHTTPAPI(ctx, db, engine)
 	return &http.Server{
@@ -41,7 +42,7 @@ func cookieSetter(c *gin.Context) {
 			Path:     "/",
 			HttpOnly: false,
 			Secure:   false,
-			SameSite: http.SameSiteDefaultMode,
+			SameSite: http.SameSiteStrictMode,
 		})
 	}
 }
@@ -54,6 +55,13 @@ func newCsrfMiddleware() gin.HandlerFunc {
 				utils.NewUnsuccessfulResponseWithCode(http.StatusForbidden, "invalid csrf token"),
 			)
 		},
+		TokenGetter: func(c *gin.Context) string {
+			token, err := c.Cookie(csrfCookieName)
+			if errors.Is(err, http.ErrNoCookie) && gin.Mode() != gin.ReleaseMode {
+				return c.Request.Header.Get("X-CSRF-TOKEN")
+			}
+			return token
+		},
 	})
 }
 
@@ -64,4 +72,8 @@ func newSessionMiddleware() gin.HandlerFunc {
 			[]byte(config.Configuration.Persister.Session.Secret),
 		),
 	)
+}
+
+func healthCheckHandler(c *gin.Context) {
+	c.AbortWithStatusJSON(utils.NewSuccessfulResponseWithCode(http.StatusOK, "pong"))
 }

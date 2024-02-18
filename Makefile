@@ -9,3 +9,7 @@ build:
 run-persister:
 	@echo "Running persister... with $(GO)"
 	@$(GO) run cmd/$(APP)/main.go persister listen
+
+run-proxier:
+	@echo "Running proxier... with $(GO)"
+	@$(GO) run cmd/$(APP)/main.go proxier listen
