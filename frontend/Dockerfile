@@ -1,18 +1,25 @@
 FROM  node:21-alpine as builder
 
+ARG ENVIRONMENT
+
+ENV ENVIRONMENT=${ENVIRONMENT:-local-backend}
 WORKDIR /app
 
-COPY ./.env.production .env.production
-COPY ./public public
-COPY ./index.html index.html
-COPY ./src src
 COPY ./package.json package.json
 COPY ./package-lock.json package-lock.json
+
+RUN npm -v && npm i
+
 COPY ./tsconfig.json tsconfig.json
 COPY ./tsconfig.node.json tsconfig.node.json
 COPY ./vite.config.ts vite.config.ts
+COPY ./public public
+COPY ./index.html index.html
+COPY ./.env.$ENVIRONMENT .env.$ENVIRONMENT
 
-RUN npm -v && npm i && npm run build
+COPY ./src src
+
+RUN npm run build
 
 FROM nginx
 
