@@ -1,29 +1,8 @@
-import axios, {Axios, AxiosResponse} from 'axios';
+import axios, {AxiosResponse} from 'axios';
+import {APIClient, APIClientConfig, APIError, APIResponse} from "./iface.ts";
 
-export interface APIClientConfig {
-    API_URL: string;
-    CLIENT_TIMEOUT: number;
-    HEADERS: object;
-    API_VERSION: string;
-}
-
-export interface APISlugDataResponse {
-    slug: string;
-    host: string;
-    ip: string;
-}
-export interface APIResponse {
-    status: number
-    data: APISlugDataResponse
-}
-
-export interface APIError {
-    status: number;
-    error: string;
-}
-
-export class APIClient {
-    private client: Axios;
+export class AxiosClient implements APIClient {
+    private client: axios.AxiosInstance;
     private apiVersion: string;
     constructor(config: APIClientConfig) {
         this.client = axios.create({
@@ -36,13 +15,8 @@ export class APIClient {
     }
     createSite(host: string, ip: string): Promise<APIResponse|APIError> {
         const start = Date.now();
-        // const csrf = this.getCSRFToken();
 
-        if (import.meta.env.MODE === "development") {
-            return new Promise((resolve) => {
-                setTimeout(() => {resolve({data: {slug: "test", host: "domain.tld", ip: "1.1.1.1"}, status: 200})}, 100);
-            })
-        }
+
         return this.client.post(`/api/${this.apiVersion}/persister/create`, {host, ip})
             .then((resp: AxiosResponse) => {
               console.log({response: resp.data, latency: Date.now() - start, status: resp.status})
@@ -58,7 +32,11 @@ export class APIClient {
     }
 
     ping(): Promise<APIResponse> {
-        return this.client.get("/ping")
+        if (import.meta.env.MODE === "development") {
+            return new Promise((resolve) => {
+                setTimeout(() => {resolve()}, 100);
+            })
+        }        return this.client.get("/ping")
             .then((res: AxiosResponse) => {
                 return res.data as APIResponse
             }).catch((err) => {

@@ -34,7 +34,7 @@ const copyRightString = store.copyRightString;
 onBeforeMount(() =>
     setTimeout(() =>
     store.client.ping()
-        .then((v) => backendAlive.value = v.data==="pong")
+        .then((v) => backendAlive.value = v.data.message==="pong")
         .catch((e) => console.error(e))
     ,500)
 )

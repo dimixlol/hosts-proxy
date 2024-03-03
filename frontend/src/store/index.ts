@@ -1,5 +1,6 @@
 import {defineStore} from "pinia";
-import {APIClient, APISlugDataResponse} from "../api/client";
+import {APIClientFactory} from "../api/factory.ts";
+import {APISlugDataResponse} from "../api/iface.ts";
 import {inject} from "vue";
 import VueCookies from "vue-cookies";
 
@@ -7,12 +8,7 @@ export const useStore = defineStore( {
     id: "main",
     state: () => ({
         _appName: import.meta.env.VITE_APP_NAME,
-        _client: new APIClient({
-            API_URL: import.meta.env.VITE_API_URL,
-            CLIENT_TIMEOUT: import.meta.env.VITE_CLIENT_TIMEOUT,
-            HEADERS: import.meta.env.VITE_HEADERS,
-            API_VERSION: import.meta.env.VITE_API_VERSION
-        }),
+        _client: new APIClientFactory().makeClient(),
         _testCookie: import.meta.env.VITE_COOKIE_FOR_TEST,
         _notificationMessage: "Something went wrong :(",
         _slugData: {} as APISlugDataResponse,
