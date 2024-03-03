@@ -23,6 +23,7 @@ type persisterConfiguration struct {
 	}
 	CSRF struct {
 		Secret string
+		Domain string
 	}
 }
 
@@ -90,13 +91,14 @@ func boostrap(version string) {
 	viper.SetDefault("api.logo.href", "https://foo.bar")
 	// Persister
 	viper.SetDefault("persister.host", "localhost")
-	viper.SetDefault("persister.port", "8080")
+	viper.SetDefault("persister.port", "8081")
 	viper.SetDefault("persister.session.secret", "hello-world")
 	viper.SetDefault("persister.session.ttl", 3600)
 	viper.SetDefault("persister.csrf.secret", "hello-world")
+	viper.SetDefault("persister.csrf.domain", "localhost")
 	// Proxier
 	viper.SetDefault("proxier.host", "localhost")
-	viper.SetDefault("proxier.port", "8081")
+	viper.SetDefault("proxier.port", "8082")
 	// CORS
 	viper.SetDefault("cors.allowOrigins", []string{"http://localhost:5173"})
 	viper.SetDefault("cors.allowMethods", []string{"GET", "POST", "OPTIONS"})

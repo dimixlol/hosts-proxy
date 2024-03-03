@@ -21,6 +21,8 @@ const (
 	healthCheckEndpoint = "/ping"
 )
 
+var healthCheckResponse = map[string]string{"message": "pong"}
+
 func NewHTTPPersister(ctx context.Context) *http.Server {
 	engine := utils.NewApiEngine(constructOpenApiInfo, newSessionMiddleware(), newCsrfMiddleware(), cookieSetter)
 	engine.GET(healthCheckEndpoint, nil, healthCheckHandler)
@@ -38,7 +40,7 @@ func cookieSetter(c *gin.Context) {
 			Name:     csrfCookieName,
 			Value:    csrf.GetToken(c),
 			MaxAge:   config.Configuration.Persister.Session.TTL,
-			Domain:   config.Configuration.Persister.Host,
+			Domain:   config.Configuration.Persister.CSRF.Domain,
 			Path:     "/",
 			HttpOnly: false,
 			Secure:   false,
@@ -75,5 +77,5 @@ func newSessionMiddleware() gin.HandlerFunc {
 }
 
 func healthCheckHandler(c *gin.Context) {
-	c.AbortWithStatusJSON(utils.NewSuccessfulResponseWithCode(http.StatusOK, "pong"))
+	c.AbortWithStatusJSON(utils.NewSuccessfulResponseWithCode(http.StatusOK, healthCheckResponse))
 }
