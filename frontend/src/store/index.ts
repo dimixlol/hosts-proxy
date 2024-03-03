@@ -51,7 +51,7 @@ export const useStore = defineStore( {
          toggleEgg() {
             if (Math.floor(Math.random() * 100)%7 == 0 || this._$cookies.get("testCookie") === this.testCookie) {
                 this._showEgg = !this._showEgg;
-                setTimeout(() => this._showEgg = !this._showEgg, 2000);
+                setTimeout(() => this._showEgg = !this._showEgg, 3000);
             }
         },
         toggleSiteView() {

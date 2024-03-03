@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="submitForm" form-data="">
+  <form @submit.prevent="submitForm" form-data="" class="form-group d-grid w-50 app-form">
     <input v-for="(props, item) in formData"
       :type="props.type||'text'"
       :name="item"
@@ -44,6 +44,22 @@ const submitForm = (e:any) => {
 
 <style lang="scss">
 @import "../assets/scss/main";
+.app-form {
+  grid-template: 1fr / 1fr;
+  grid-gap: 1em;
+  padding: 1em 1em 15em 1em;
+  input {
+    transition: transform 1s ease;
+  }
+  @include media-breakpoint-up(md) {
+    grid-template: 1fr / 1fr 1fr;
+    :last-child {
+      grid-column: 1/3;
+      width: 75%;
+      justify-self: center;
+    }
+  }
+}
 
 .is-invalid { border: inset 1px red!important; }
 .form-control::placeholder {

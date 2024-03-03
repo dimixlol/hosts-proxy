@@ -27,8 +27,9 @@ defineProps({
 })
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss" >
 .egg-container {
+  animation: 5s linear 0s transfer forwards;
   img {
     height: 300px;
     width: 300px;
@@ -43,11 +44,15 @@ defineProps({
     }
   }
 }
+@keyframes transfer {
+  0% { transform: translateX(-60vw) }
+  50% { transform: translateX(0) }
+  100% { transform: translateX(60vw) }
+}
 @keyframes rotation {
   to { transform: rotate(360deg); }
 }
-.egg-enter-active, .egg-leave-active { transition: all 5s ease }
+.egg-enter-active, .egg-leave-active { transition: all 2s ease; }
 .egg-enter-from, .egg-leave-to { opacity: 0 }
-.egg-enter-from { transform: translateX(-100%) }
-.egg-leave-to { transform: translateX(100%) }
+
 </style>

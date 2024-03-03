@@ -1,5 +1,5 @@
 <template>
-  <div class="z-1 align-self-center w-50 d-flex flex-column align-items-center overflow-hidden">
+  <div class="z-1 align-self-center w-50 d-flex flex-column align-items-center">
     <div class="p-1 user-select-none text-center">
       Link for
       <span class="fs-5">{{store.slugData.host}}</span>
@@ -11,7 +11,6 @@
       <a :href="siteNameWithSchema" class="link-light text-decoration-none">{{siteName}}</a>
     </div>
     <Egg v-model:eggVisible="store.showEgg"/>
-
   </div>
 </template>
 
@@ -22,9 +21,10 @@ import Egg from "../components/Egg.vue";
 const store = useStore()
 const siteName = store.slugData.slug + import.meta.env.VITE_PROXY_BASE;
 const siteNameWithSchema = ref("https://"+siteName);
-// @ts-ignore
 onMounted(() => {
-  store.toggleEgg();
+  setTimeout(() => {
+    store.toggleEgg();
+  }, 1000)
 })
 </script>
 

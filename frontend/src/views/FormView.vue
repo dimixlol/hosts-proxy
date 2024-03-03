@@ -1,7 +1,7 @@
 <template>
-  <div class="d-flex flex-column overflow-hidden">
+  <div class="d-flex flex-column flex-grow-1 justify-content-center">
     <Transition name="hide-form">
-      <Form v-if="!store.siteShown" id="form" :formData="formData" @submit.prevent="createSite" class="form-group d-grid align-self-center justify-content-center w-50 app-form"/>
+      <Form v-if="!store.siteShown" id="form" :formData="formData" @submit.prevent="createSite" class="align-self-center"/>
     </Transition>
     <Transition name="site-created">
       <Site v-if="store.siteShown"></Site>
@@ -49,32 +49,13 @@ const createSite = (event: any) => {
 </script>
 
 <style lang="scss">
-@import "../assets/scss/main";
-.app-form {
-  grid-template: 1fr / 1fr;
-  grid-gap: 1em;
-  padding: 1em 1em 15em 1em;
-  input {
-    transition: transform 1s ease;
-  }
-  @include media-breakpoint-up(md) {
-    grid-template: 1fr / 1fr 1fr;
-      :last-child {
-      grid-column: 1/3;
-      width: 75%;
-      justify-self: center;
-    }
-  }
-}
-
 .hide-form-enter-from, .hide-form-leave-to {
-  transform: translateY(-20%) scale(.5);
+  transform: translateY(-20%) scale(.1);
   opacity: 0;
 }
 
 .hide-form-enter-active, .hide-form-leave-active {
   transition: all .5s ease;
-  position: absolute;
 }
 
 .site-created-enter-from, .site-created-leave-to {

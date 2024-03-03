@@ -1,13 +1,13 @@
 <template>
     <header>
-      <div class="d-flex">
-        <a href="/" class="text-decoration-none px-3 pt-3">
+      <div class="d-flex user-select-none">
+        <a href="/" class="text-decoration-none px-3 pt-3 pointer" tabindex="-1">
           <h1 class="text-primary site-name user-select-none text-center m-0 pointer text-nowrap">{ {{ store.appName }}; }</h1>
         </a>
       </div>
       <Notification class="notification-container min-vw-100 end-0 position-absolute d-flex justify-content-center"/>
     </header>
-  <main class="d-flex flex-grow-1 flex-column justify-content-center">
+  <main class="d-flex flex-grow-1 flex-column justify-content-center" style="min-height: calc(100vh - 6em)">
     <TransitionGroup name="main-page">
         <FormView v-if="backendAlive === true" class="d-flex flex-column"/>
         <SpinnerView v-if="backendAlive === undefined" class="align-self-center"/>
