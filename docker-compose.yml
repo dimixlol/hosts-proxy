@@ -1,51 +1,60 @@
 version: "3.8"
+
+x-backend-base: &be-base
+  build:
+    context: ./backend
+  restart: always
+  networks:
+    - infra
+    - internal
+  depends_on:
+    - postgres
+    - redis
+  env_file:
+    - ${ENV_FILE:-./backend/.env.local}
+
 services:
   frontend:
-    image: 127.0.0.1:5000/kyw-frontend:latest
+    build:
+      context: ./frontend
+      args:
+        ENVIRONMENT: "${ENV:-local-backend}"
     restart: always
     ports:
-      - "8080:80"
+      - "5173:80"
     networks:
       - infra
-  backend-persister:
-    image: 127.0.0.1:5000/kyw-backend:latest
+
+  persister:
+    <<: *be-base
+    image: persiser
     command: ["persister", "listen"]
-    restart: always
     ports:
-      - "8081:8080"
-    environment:
-      - DB_HOST=postgres
-      - DB_USER=postgres_user
-      - DB_PASSWORD=postgres_password
-      - DB_PORT=5432
-      - DB_NAME=kyw
-      - CACHE_HOST=redis
-      - CACHE_PORT=6379
-    networks:
-      - infra
-      - internal
-    depends_on:
-      - postgres
+      - "8081:8081"
+
+  proxier:
+    <<: *be-base
+    image: proxier
+    command: [ "proxier", "listen" ]
+    ports:
+      - "8082:8082"
+
   postgres:
     image: postgres:latest
     restart: always
     networks:
       - internal
     environment:
-      POSTGRES_USER: postgres_user
-      POSTGRES_PASSWORD: postgres_password
-      POSTGRES_DB: kyw
+      POSTGRES_USER: ${PG_USER:-hpdb}
+      POSTGRES_PASSWORD: ${PG_PWD:-hpdb}
+      POSTGRES_DB: ${PG_DB:-hpdb}
+
   redis:
     image: redis:latest
     restart: always
-    ports:
-      - "6379:6379"
     networks:
       - internal
 
-
 networks:
   infra:
-    external: true
   internal:
-    driver: overlay
