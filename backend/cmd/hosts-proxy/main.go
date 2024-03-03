@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/dimixlol/hosts-proxy/config"
 	"github.com/dimixlol/hosts-proxy/domains/persister"
 	"github.com/dimixlol/hosts-proxy/domains/proxier"
@@ -41,6 +42,11 @@ func newListenerCmd(app string, makeSrv func(ctx context.Context) *http.Server) 
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := cmd.Context()
 			srv := makeSrv(ctx)
+
+			if gin.Mode() == gin.DebugMode {
+				fmt.Println(config.Configuration)
+			}
+
 			logger := logging.GetLogger(ctx)
 			logger.Infof(ctx, "Starting `%s` server version `%s` at http://%s", app, Version, srv.Addr)
 			err := srv.ListenAndServe()
