@@ -15,8 +15,6 @@ export class AxiosClient implements APIClient {
     }
     createSite(host: string, ip: string): Promise<APIResponse|APIError> {
         const start = Date.now();
-
-
         return this.client.post(`/api/${this.apiVersion}/persister/create`, {host, ip})
             .then((resp: AxiosResponse) => {
               console.log({response: resp.data, latency: Date.now() - start, status: resp.status})
@@ -32,11 +30,7 @@ export class AxiosClient implements APIClient {
     }
 
     ping(): Promise<APIResponse> {
-        if (import.meta.env.MODE === "development") {
-            return new Promise((resolve) => {
-                setTimeout(() => {resolve()}, 100);
-            })
-        }        return this.client.get("/ping")
+        return this.client.get("/ping")
             .then((res: AxiosResponse) => {
                 return res.data as APIResponse
             }).catch((err) => {
